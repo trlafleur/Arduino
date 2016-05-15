@@ -37,16 +37,23 @@
  * http://www.mysensors.org/build/light
  */
 
+
+// Enable debug prints to serial monitor
+#define MY_DEBUG 
+
+// Enable and select radio type attached
+#define MY_RADIO_NRF24
+//#define MY_RADIO_RFM69
+
 #include <SPI.h>
 #include <MySensor.h>  
 #include <BH1750.h>
-#include <Wire.h> 
+#include <Wire.h>
 
 #define CHILD_ID_LIGHT 0
 unsigned long SLEEP_TIME = 30000; // Sleep time between reads (in milliseconds)
 
 BH1750 lightSensor;
-MySensor gw;
 
 // V_LIGHT_LEVEL should only be used for uncalibrated light level 0-100%.
 // If your controller supports the new V_LEVEL variable, use this instead for
@@ -57,15 +64,15 @@ uint16_t lastlux;
 
 void setup()  
 { 
-  gw.begin();
+  lightSensor.begin();
+}
 
+void presentation()  {
   // Send the sketch version information to the gateway and Controller
-  gw.sendSketchInfo("Light Lux Sensor", "1.0");
+  sendSketchInfo("Light Lux Sensor", "1.0");
 
   // Register all sensors to gateway (they will be created as child devices)
-  gw.present(CHILD_ID_LIGHT, S_LIGHT_LEVEL);
-  
-  lightSensor.begin();
+  present(CHILD_ID_LIGHT, S_LIGHT_LEVEL);
 }
 
 void loop()      
@@ -73,9 +80,9 @@ void loop()
   uint16_t lux = lightSensor.readLightLevel();// Get Lux value
   Serial.println(lux);
   if (lux != lastlux) {
-      gw.send(msg.set(lux));
+      send(msg.set(lux));
       lastlux = lux;
   }
   
-  gw.sleep(SLEEP_TIME);
+  sleep(SLEEP_TIME);
 }
