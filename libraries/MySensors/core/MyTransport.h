@@ -44,33 +44,33 @@
 
 /// @brief FW config structure, stored in eeprom
 typedef struct {
-	uint16_t type; //!< Type of config
-	uint16_t version; //!< Version of config
-	uint16_t blocks; //!< Number of blocks
-	uint16_t crc; //!< CRC of block data
+	uint16_t type; 		//!< Type of config
+	uint16_t version; 	//!< Version of config
+	uint16_t blocks; 	//!< Number of blocks
+	uint16_t crc; 		//!< CRC of block data
 } __attribute__((packed)) NodeFirmwareConfig;
 
 /// @brief FW config request structure
 typedef struct {
-	uint16_t type; //!< Type of config
-	uint16_t version; //!< Version of config
-	uint16_t blocks; //!< Number of blocks
-	uint16_t crc; //!< CRC of block data
+	uint16_t type; 		//!< Type of config
+	uint16_t version; 	//!< Version of config
+	uint16_t blocks; 	//!< Number of blocks
+	uint16_t crc; 		//!< CRC of block data
 	uint16_t BLVersion; //!< Bootloader version
 } __attribute__((packed)) RequestFirmwareConfig;
 
 /// @brief FW block request structure
 typedef struct {
-	uint16_t type; //!< Type of config
-	uint16_t version; //!< Version of config
-	uint16_t block; //!< Block index
+	uint16_t type; 		//!< Type of config
+	uint16_t version; 	//!< Version of config
+	uint16_t block; 	//!< Block index
 } __attribute__((packed)) RequestFWBlock;
 
 /// @brief FW block reply structure
 typedef struct {
-	uint16_t type; //!< Type of config
-	uint16_t version; //!< Version of config
-	uint16_t block; //!< Block index
+	uint16_t type; 		//!< Type of config
+	uint16_t version; 	//!< Version of config
+	uint16_t block; 	//!< Block index
 	uint8_t data[FIRMWARE_BLOCK_SIZE]; //!< Block data
 } __attribute__((packed)) ReplyFWBlock;
 
@@ -103,7 +103,7 @@ void transportSetAddress(uint8_t address);
 uint8_t transportGetAddress();
 bool transportSend(uint8_t to, const void* data, uint8_t len);
 bool transportAvailable(uint8_t *to);
-uint8_t transportReceive(void* data);
+uint8_t transportReceive(uint8_t* data); // modified from (void* data) 2016-05-30
 void transportPowerDown();
 
 #endif

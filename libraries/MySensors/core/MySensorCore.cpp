@@ -45,13 +45,17 @@ void _process() {
 	#endif
 
 	#if defined(MY_GATEWAY_FEATURE)
+	
+		//Serial.println("\n *** in MySensorCore  --> gatewayTransportProcess();\n");
 		gatewayTransportProcess();
 	#endif
 
 	#if defined(MY_RADIO_FEATURE)
+	
+	//Serial.println("\n *** in MySensorCore  --> transportProcess();\n");
 		transportProcess();
 	#endif
-	
+	//Serial.println("\n *** in MySensorCore  --> end of _process;\n");
 }
 
 #if defined(MY_RADIO_FEATURE)

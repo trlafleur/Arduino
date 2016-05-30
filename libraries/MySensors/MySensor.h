@@ -55,7 +55,7 @@
 #endif
 
 // Enable radio "feature" if one of the radio types was enabled
-#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485)
+#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485) || defined(MY_RADIO_RH_RF69)
 	#define MY_RADIO_FEATURE
 #endif
 
@@ -251,12 +251,14 @@
 
 
 // RADIO
-#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485)
+#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485) || defined(MY_RADIO_RH_RF69)
 	// SOFTSPI
 	#ifdef MY_SOFTSPI
+	
 		#if defined(ARDUINO_ARCH_ESP8266)
 			#error Soft SPI is not available on ESP8266
 		#endif
+		
 		#include "drivers/AVR/DigitalIO/DigitalIO.h"
 	#endif
 
@@ -266,6 +268,7 @@
 	#endif
 	
 	#include "core/MyTransport.cpp"
+	
 	#if (defined(MY_RADIO_NRF24) && defined(MY_RADIO_RFM69)) || (defined(MY_RADIO_NRF24) && defined(MY_RS485)) || (defined(MY_RADIO_RFM69) && defined(MY_RS485))
 		#error Only one forward link driver can be activated
 	#endif
@@ -285,6 +288,14 @@
 		#include "drivers/RFM69/RFM69.cpp"
 		#include "drivers/RFM69/RFM69_ATC.cpp"
 		#include "core/MyTransportRFM69.cpp"
+
+	#elif defined(MY_RADIO_RH_RF69)
+//		#include <RH_RF69.cpp>
+		#include "core/MyTransportRadioHead.cpp"
+		
+	#elif defined(MY_RADIO_RH_RF95)
+//		#include <RH_RF95.cpp>
+		#include "core/MyTransportRadioHead.cpp"
 		
 	#endif
 #endif

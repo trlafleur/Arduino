@@ -185,11 +185,11 @@ uint8_t hwCPUFrequency() {
 #ifdef MY_DEBUG
 void hwDebugPrint(const char *fmt, ... ) {
 	char fmtBuffer[300];
-	#ifdef MY_GATEWAY_FEATURE
-		// prepend debug message to be handled correctly by controller (C_INTERNAL, I_LOG_MESSAGE)
-		snprintf_P(fmtBuffer, 299, PSTR("0;255;%d;0;%d;"), C_INTERNAL, I_LOG_MESSAGE);
-		MY_SERIALDEVICE.print(fmtBuffer);
-	#endif
+//	#ifdef MY_GATEWAY_FEATURE
+//		// prepend debug message to be handled correctly by controller (C_INTERNAL, I_LOG_MESSAGE)
+//		snprintf_P(fmtBuffer, 299, PSTR("0;255;%d;0;%d;"), C_INTERNAL, I_LOG_MESSAGE);
+//		MY_SERIALDEVICE.print(fmtBuffer);
+//	#endif
 	va_list args;
 	va_start (args, fmt );
 	va_end (args);

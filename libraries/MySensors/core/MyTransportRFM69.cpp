@@ -24,17 +24,52 @@
 #include "drivers/RFM69/RFM69_ATC.h"
 
 
-#ifdef MY_RFM69_Enable_ATC
-RFM69_ATC 	_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN, MY_RFM69HW, MY_RF69_IRQ_NUM);
-#else
+//#ifdef MY_RFM69_Enable_ATC
+//RFM69_ATC 	_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN, MY_RFM69HW, MY_RF69_IRQ_NUM);
+//#else
 RFM69 		_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN, MY_RFM69HW, MY_RF69_IRQ_NUM);
-#endif
+//#endif
 
 uint8_t _address;
 
-bool transportInit() {
+
+
+
+/* A function to print a buffer in hex format
+ *
+ *  hexdump (buffer, length, 16);
+ */
+#include <stdio.h>
+#include <stdlib.h>
+
+ void hexdump(unsigned char *buffer, unsigned long index, unsigned long width)
+ {
+    unsigned long i;
+    for (i=0; i<index; i++)
+    {
+      debug1(PSTR("%02x "), buffer[i]);       //printf("%02x ",buffer[i]);
+    }
+    
+    for (unsigned long spacer=index;spacer<width;spacer++)
+      debug1(PSTR("  "));                    //printf("  ");
+      debug1(PSTR(": "));                    //printf(": ");
+      for (i=0; i<index; i++)
+      {
+        if (buffer[i] < 32) debug1(PSTR("."));   //printf(".");
+        else debug1(PSTR("%c"), buffer[i]);      //printf("%c",buffer[i]);
+      }
+    debug1(PSTR("\n"));                      //printf("\n");
+ }
+
+
+
+
+
+bool transportInit() 
+{
 	// Start up the radio library (_address will be set later by the MySensors library)
-	if (_radio.initialize(MY_RFM69_FREQUENCY, _address, MY_RFM69_NETWORKID)) {
+	if (_radio.initialize(MY_RFM69_FREQUENCY, _address, MY_RFM69_NETWORKID)) 
+		{
 		#ifdef MY_RFM69_ENABLE_ENCRYPTION
 			uint8_t _psk[16];
 			hwReadConfigBlock((void*)_psk, (void*)EEPROM_RF_ENCRYPTION_AES_KEY_ADDRESS, 16);
@@ -42,24 +77,36 @@ bool transportInit() {
 			memset(_psk, 0, 16); // Make sure it is purged from memory when set
 		#endif
 		return true;
-	}
+		}
 	return false;
 }
 
-void transportSetAddress(uint8_t address) {
+void transportSetAddress(uint8_t address) 
+{
 	_address = address;
 	_radio.setAddress(address);
 }
 
-uint8_t transportGetAddress() {
+uint8_t transportGetAddress() 
+{
 	return _address;
 }
 
-bool transportSend(uint8_t to, const void* data, uint8_t len) {
+bool transportSend(uint8_t to, const void* data, uint8_t len) 
+{
+	
+	debug1(PSTR("\n *** Hex dump from transportSend \n"));
+	debug1(PSTR(" *** TO: %d Len: %d \n"), to, len);
+	hexdump ((uint8_t*)data, (unsigned long) len, 16);
+	debug1(PSTR("\n"));
+	
+	
+	
 	return _radio.sendWithRetry(to,data,len,5);
 }
 
-bool transportAvailable(uint8_t *to) {
+bool transportAvailable(uint8_t *to) 
+{
 	if (_radio.TARGETID == BROADCAST_ADDRESS)
 		*to = BROADCAST_ADDRESS;
 	else
@@ -67,15 +114,26 @@ bool transportAvailable(uint8_t *to) {
 	return _radio.receiveDone();
 }
 
-uint8_t transportReceive(void* data) {
+uint8_t transportReceive(void* data) 
+{
 	memcpy(data,(const void *)_radio.DATA, _radio.DATALEN);
+	
+    debug1(PSTR("\n *** Hex dump from transportReceive \n"));
+    debug1(PSTR(" *** From: %d Len: %d \n"), _radio.SENDERID, _radio.DATALEN);
+	hexdump ( (unsigned char*) & _radio.DATA , (unsigned long)  _radio.DATALEN, 16);
+	//hexdump ((unsigned char*) data , (unsigned long) sizeof (data), 16);
+	debug1(PSTR("\n"));	
+	
+	
 	// Send ack back if this message wasn't a broadcast
 	if (_radio.TARGETID != RF69_BROADCAST_ADDR)
 		_radio.ACKRequested();
     _radio.sendACK();
+    
 	return _radio.DATALEN;
 }	
 
-void transportPowerDown() {
+void transportPowerDown() 
+{
 	_radio.sleep();
 }

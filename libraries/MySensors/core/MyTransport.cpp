@@ -40,8 +40,13 @@ static inline bool isValidDistance( const uint8_t distance ) {
 
 inline void transportProcess() {
 	uint8_t to = 0;
-	if (!transportAvailable(&to))
+	
+	//Serial.println("\n *** in MyTransport transportProcess\n");
+	
+	if (!transportAvailable(&to))	
 	{
+		//Serial.println("\n *** in MyTransport transportProcess --> !transportAvailable(&to)\n");
+		
 		#ifdef MY_OTA_FIRMWARE_FEATURE
 		unsigned long enter = hwMillis();
 		if (_fwUpdateOngoing && (enter - _fwLastRequestTime > MY_OTA_RETRY_DELAY)) {
@@ -63,8 +68,11 @@ inline void transportProcess() {
 			_sendRoute(build(_msg, _nc.nodeId, GATEWAY_ADDRESS, NODE_SENSOR_ID, C_STREAM, ST_FIRMWARE_REQUEST, false));
 		}
 		#endif
+		
 		return;
 	}
+
+	//Serial.println("\n *** in MyTransport transportProcess --> transportAvailable(&to)\n");
 
 	(void)signerCheckTimer(); // Manage signing timeout
 
