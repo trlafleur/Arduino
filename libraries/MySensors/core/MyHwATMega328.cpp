@@ -21,7 +21,7 @@
 
 #include "MyHwATMega328.h"
 
-int8_t pinIntTrigger = 0;
+volatile int8_t pinIntTrigger = 0;
 
 void wakeUp()	 //place to send the interrupts
 {
@@ -152,7 +152,7 @@ uint16_t hwCPUVoltage() {
 	return (1125300UL) / ADC;
 }
 
-uint8_t hwCPUFrequency() {
+uint16_t hwCPUFrequency() {
 	noInterrupts();
 	// setup timer1
 	TIFR1 = 0xFF;   
@@ -180,16 +180,22 @@ uint8_t hwCPUFrequency() {
 	return TCNT1 * 2048UL / 100000UL;
 }
 
+uint16_t hwFreeMem() {
+	extern int __heap_start, *__brkval; 
+	int v; 
+	return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
+
 
 
 #ifdef MY_DEBUG
 void hwDebugPrint(const char *fmt, ... ) {
 	char fmtBuffer[300];
-//	#ifdef MY_GATEWAY_FEATURE
-//		// prepend debug message to be handled correctly by controller (C_INTERNAL, I_LOG_MESSAGE)
-//		snprintf_P(fmtBuffer, 299, PSTR("0;255;%d;0;%d;"), C_INTERNAL, I_LOG_MESSAGE);
-//		MY_SERIALDEVICE.print(fmtBuffer);
-//	#endif
+	#ifdef MY_GATEWAY_FEATURE
+		// prepend debug message to be handled correctly by controller (C_INTERNAL, I_LOG_MESSAGE)
+		snprintf_P(fmtBuffer, 299, PSTR("0;255;%d;0;%d;"), C_INTERNAL, I_LOG_MESSAGE);
+		MY_SERIALDEVICE.print(fmtBuffer);
+	#endif
 	va_list args;
 	va_start (args, fmt );
 	va_end (args);
