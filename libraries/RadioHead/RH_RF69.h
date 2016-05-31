@@ -34,7 +34,7 @@
 // It removed the 4 byte header used in the RH drivers
 #define noHeader
 
-#ifdef noHeader
+#if defined noHeader
 // The length of the headers we add.
 // The headers are inside the RF69's payload and are therefore encrypted if encryption is enabled
 #define RH_RF69_HEADER_LEN 0

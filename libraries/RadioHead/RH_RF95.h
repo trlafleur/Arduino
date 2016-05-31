@@ -25,9 +25,17 @@
 // We use some for headers, keeping fewer for RadioHead messages
 #define RH_RF95_MAX_PAYLOAD_LEN RH_RF95_FIFO_SIZE
 
+// This is use for compatable MySensor, it want's to control all data
+// It removed the 4 byte header used in the RH_RF95 drivers
+#define noHeader
+
+#if defined noHeader
 // The length of the headers we add.
 // The headers are inside the LORA's payload
+#define RH_RF95_HEADER_LEN 0
+#else
 #define RH_RF95_HEADER_LEN 4
+#endif
 
 // This is the maximum message length that can be supported by this driver. 
 // Can be pre-defined to a smaller size (to save SRAM) prior to including this header

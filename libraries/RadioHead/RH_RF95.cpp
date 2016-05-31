@@ -178,6 +178,9 @@ void RH_RF95::isr2()
 // Check whether the latest received message is complete and uncorrupted
 void RH_RF95::validateRxBuf()
 {
+	
+#if defined noHeader
+#else
     if (_bufLen < 4)
 	return; // Too short to be a real message
     // Extract the 4 headers
@@ -188,6 +191,7 @@ void RH_RF95::validateRxBuf()
     if (_promiscuous ||
 	_rxHeaderTo == _thisAddress ||
 	_rxHeaderTo == RH_BROADCAST_ADDRESS)
+#endif
     {
 	_rxGood++;
 	_rxBufValid = true;
@@ -237,11 +241,15 @@ bool RH_RF95::send(const uint8_t* data, uint8_t len)
 
     // Position at the beginning of the FIFO
     spiWrite(RH_RF95_REG_0D_FIFO_ADDR_PTR, 0);
+    
+#if defined noHeader
+#else   
     // The headers
     spiWrite(RH_RF95_REG_00_FIFO, _txHeaderTo);
     spiWrite(RH_RF95_REG_00_FIFO, _txHeaderFrom);
     spiWrite(RH_RF95_REG_00_FIFO, _txHeaderId);
     spiWrite(RH_RF95_REG_00_FIFO, _txHeaderFlags);
+#endif
     // The message data
     spiBurstWrite(RH_RF95_REG_00_FIFO, data, len);
     spiWrite(RH_RF95_REG_22_PAYLOAD_LENGTH, len + RH_RF95_HEADER_LEN);

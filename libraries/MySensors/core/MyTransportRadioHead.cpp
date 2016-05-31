@@ -61,10 +61,10 @@ uint8_t _address = MY_NODE_ID;		// this is my node's address
 static const uint8_t _NID[] = {0x2d, (const uint8_t) MY_RFM69_NETWORKID};
 
 // This define's the radio class
-#ifdef MY_RADIO_RH_RF69
+#if	defined MY_RADIO_RH_RF69
 #include "RH_RF69.h"
 RH_RF69					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
-#elif  MY_RADIO_RH_RF95
+#elif  defined MY_RADIO_RH_RF95
 #include "RH_RF95.h"
 RH_RF95					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
 #else
@@ -104,7 +104,7 @@ bool transportInit()
 {
 	if (_radio.init())
 	{
-		_radio.setEncryptionKey(NULL);		// no for now
+
 //		#ifdef MY_RFM69_ENABLE_ENCRYPTION
 //			uint8_t _psk[16];
 //			hwReadConfigBlock((void*)_psk, (void*)EEPROM_RF_ENCRYPTION_AES_KEY_ADDRESS, 16);
@@ -115,7 +115,8 @@ bool transportInit()
 #if 	defined MY_RADIO_RH_RF69		
 		if (!_radio.setFrequency(915.0))						debug(PSTR(" ** setFrequency failed **\n") );
 		if (!_radio.setModemConfig( _radio.FSK_Rb55555Fd50 ))	debug(PSTR(" ** setModemConfig failed **\n") );
-	
+			
+		_radio.setEncryptionKey(NULL);		// no for now
 		_radio.setSyncWords(_NID,2);		// this sets the unique network ID
 		_radio.setTxPower(20);				// 14 to 20 is the range for the RFM69HW (HCW) 
 		_radio.setPreambleLength (3);		// for compatable with  LowPowerLab stack
@@ -124,13 +125,12 @@ bool transportInit()
 		
 #elif	defined MY_RADIO_RH_RF95		
 		if (!_radio.setFrequency(915.0))							debug(PSTR(" ** setFrequency failed **\n") );
-		if (!_radio.setModemConfig( _radio.FSK_Rb55555Fd50 ))		debug(PSTR(" ** setModemConfig failed **\n") );
+		if (!_radio.setModemConfig( _radio.Bw125Cr45Sf128 ))		debug(PSTR(" ** setModemConfig failed **\n") );
 	
-		_radio.setSyncWords(_NID,2);		// this sets the unique network ID
-		_radio.setTxPower(20);				// 14 to 20 is the range for the RFM69HW (HCW) 
-		_radio.setPreambleLength (3);		// for compatable with  LowPowerLab stack
+		_radio.setTxPower(13);				// default
+		_radio.setPreambleLength (8);		// default
 		_address = MY_NODE_ID;				// this is my node's address		
-		_radio.spiWrite(RH_RF69_REG_39_NODEADRS, MY_NODE_ID);
+		//_radio.spiWrite(RH_RF69_REG_39_NODEADRS, MY_NODE_ID);
 
 #endif		
 
@@ -147,8 +147,11 @@ bool transportInit()
 void transportSetAddress(uint8_t address) 
 {
 	_address = address;
-//	manager.setThisAddress(address);
+
+#if defined MY_RADIO_RH_RF69
 	_radio.spiWrite(RH_RF69_REG_39_NODEADRS, address);
+#elif defined MY_RADIO_RH_RF95
+#endif
 }
 
 
@@ -168,8 +171,7 @@ bool transportSend(uint8_t to, const void* data, uint8_t len)
 		debug1(PSTR(" *** TO: %d Len: %d \n"), to, len);
 		hexdump ((uint8_t*) data, (unsigned long) len, 16);
 		debug1(PSTR("\n"));
-		
-	//driver.SetHeaderTo (to);
+
 	return _radio.send( (uint8_t*)data, (uint8_t) len);		
 }
 

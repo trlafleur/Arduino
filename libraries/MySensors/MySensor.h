@@ -55,7 +55,7 @@
 #endif
 
 // Enable radio "feature" if one of the radio types was enabled
-#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485) || defined(MY_RADIO_RH_RF69)
+#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485) || defined(MY_RADIO_RH_RF69) || defined(MY_RADIO_RH_RF95)
 	#define MY_RADIO_FEATURE
 #endif
 
@@ -251,7 +251,7 @@
 
 
 // RADIO
-#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485) || defined(MY_RADIO_RH_RF69)
+#if defined(MY_RADIO_NRF24) || defined(MY_RADIO_RFM69) || defined(MY_RS485) || defined(MY_RADIO_RH_RF69) || defined(MY_RADIO_RH_RF95)
 	// SOFTSPI
 	#ifdef MY_SOFTSPI
 	

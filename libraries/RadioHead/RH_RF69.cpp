@@ -486,23 +486,16 @@ void RH_RF69::setEncryptionKey(uint8_t* key)
 
 bool RH_RF69::available()
 {
-	//Serial.println("\n *** RH_RF69::available \n");
 	
     if (_mode == RHModeTx)
-    	//Serial.println("\n *** RH_RF69::available false \n");
 	return false;
-	
-	//Serial.println("\n *** RH_RF69::available calling setModeRx() \n");
+
     setModeRx(); // Make sure we are receiving
-    
-    //Serial.println("\n *** RH_RF69::available done \n");
     return _rxBufValid;
 }
 
 bool RH_RF69::recv(uint8_t* buf, uint8_t* len)
 {
-	//Serial.println("\n *** RH_RF69-480 Receive Data\n");
-	
     if (!available())
 	return false;
 
