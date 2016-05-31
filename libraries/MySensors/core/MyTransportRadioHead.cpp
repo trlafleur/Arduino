@@ -189,10 +189,7 @@ bool transportAvailable(uint8_t *to)
 //	else
 		*to = _address;
 		
-	//Serial.println("\n *** RH_TransportAvailable \n");
-		
 	return	_radio.available();	// return true if we have a message, there for transport is available
-	//return	manager.available();	// return true if we have a message, there for transport is available
 }
 
 
