@@ -20,8 +20,16 @@
  * //   { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x42, CONFIG_WHITE}, // FSK_Rb55555Fd50 
  *  	{ CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0xf4, CONFIG_NOWHITE}, // FSK_Rb55555Fd50
  *
+ *		A note:
+ *		The RH driver require setting the frequency in MHz and the LowPowerLab requires it in Hz
  *
- *  31 May 2016		TRL		First working version
+ *		Items NOT yet Tested:
+ *			Encryption
+ *			sleep
+ *			repeater function
+ *			Tested ONLY with Moteino and MoteinoMega
+ *
+ *  31 May 2016		TRL		First working version with RH_RF69
  *
  *
  * The MySensors Arduino library handles the wireless radio link and protocol
@@ -63,11 +71,6 @@ RH_RF95					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
 #error Radio is not defined in MyTransportRadioHead.cpp
 #endif		
 
-// This define's the class to manager message delivery and receipt, using the radio driver declared above
-//RHReliableDatagram 		manager(_radio, _address);
-//RHDatagram 				manager(_radio, _address);
-//RHGenericDriver			driver();
-
 
 /* A function to print a buffer in hex format
  *
@@ -95,8 +98,7 @@ RH_RF95					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
     debug1(PSTR("\n"));                      //printf("\n");
  }
 
-// a note the RadioHead driver append a header to all message with a 4 byte header with to/from/id/flags
-// for now this has be commemt out in the driver for compatable with the LowPowerLab driver...
+
 /* ********************************************************** */
 bool transportInit() 
 {
@@ -110,8 +112,17 @@ bool transportInit()
 //			memset(_psk, 0, 16); // Make sure it is purged from memory when set
 //		#endif
 
-		// a note the RadioHead driver append a header to all message with a 4 byte header with to/from/id/flags
-#ifdef MY_RADIO_RH_RF69		
+#if 	defined MY_RADIO_RH_RF69		
+		if (!_radio.setFrequency(915.0))						debug(PSTR(" ** setFrequency failed **\n") );
+		if (!_radio.setModemConfig( _radio.FSK_Rb55555Fd50 ))	debug(PSTR(" ** setModemConfig failed **\n") );
+	
+		_radio.setSyncWords(_NID,2);		// this sets the unique network ID
+		_radio.setTxPower(20);				// 14 to 20 is the range for the RFM69HW (HCW) 
+		_radio.setPreambleLength (3);		// for compatable with  LowPowerLab stack
+		_address = MY_NODE_ID;				// this is my node's address		
+		_radio.spiWrite(RH_RF69_REG_39_NODEADRS, MY_NODE_ID);
+		
+#elif	defined MY_RADIO_RH_RF95		
 		if (!_radio.setFrequency(915.0))							debug(PSTR(" ** setFrequency failed **\n") );
 		if (!_radio.setModemConfig( _radio.FSK_Rb55555Fd50 ))		debug(PSTR(" ** setModemConfig failed **\n") );
 	
@@ -120,7 +131,7 @@ bool transportInit()
 		_radio.setPreambleLength (3);		// for compatable with  LowPowerLab stack
 		_address = MY_NODE_ID;				// this is my node's address		
 		_radio.spiWrite(RH_RF69_REG_39_NODEADRS, MY_NODE_ID);
-#else
+
 #endif		
 
 		return true;

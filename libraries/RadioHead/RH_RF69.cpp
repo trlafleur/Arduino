@@ -45,7 +45,7 @@ PROGMEM static const RH_RF69::ModemConfig MODEM_CONFIG_TABLE[] =
     { CONFIG_FSK,  0x01, 0x00, 0x08, 0x00, 0xe1, 0xe1, CONFIG_WHITE}, // FSK_Rb125Fd125
     { CONFIG_FSK,  0x00, 0x80, 0x10, 0x00, 0xe0, 0xe0, CONFIG_WHITE}, // FSK_Rb250Fd250
 //  { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x42, CONFIG_WHITE}, // FSK_Rb55555Fd50 
-    { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0xf4, CONFIG_NOWHITE}, // FSK_Rb55555Fd50  For compatabily with LowPowerLab/MySensor  trl  <------------------
+    { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0xf4, CONFIG_NOWHITE}, // FSK_Rb55555Fd50  For 100% compatabily with LowPowerLab/MySensor
 
     //  02,        03,   04,   05,   06,   19,   1a,   37
     // GFSK (BT=1.0), No Manchester, whitening, CRC, no address filtering
