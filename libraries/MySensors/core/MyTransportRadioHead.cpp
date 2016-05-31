@@ -1,8 +1,27 @@
 /**
  *
  *	The is the development version of a test transport for the RadioHead 
- *  Reliable Datagram with an RH_RFM69 radio
+ *  series of radio drivers. Tested with RH_RF69, RH_RF95 radios
  *	For use with MySensor 2.0
+ *
+ *	It requires some minor changes to the RadioHead drivers:
+ *		To removed the 4 byte header sent and received by the RH drivers
+ *		
+ *		An #define noHeader was added in the "driver".h file
+ *
+ *		// This is use for compatable with LowPowerLab and MySensor drivers
+ *		// It removed the 4 byte header used in the RH drivers
+ *		#define noHeader
+ *
+ *
+ *		For 100% register compatable with the MySensor RFM_69 driver, we need to make a
+ *		change in the RH_RF69.cpp MODEM_CONFIG_TABLE for the FSK_Rb55555Fd50 to set CONFIG_NOWHITE 
+ *
+ * //   { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x42, CONFIG_WHITE}, // FSK_Rb55555Fd50 
+ *  	{ CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0xf4, CONFIG_NOWHITE}, // FSK_Rb55555Fd50
+ *
+ *
+ *  31 May 2016		TRL		First working version
  *
  *
  * The MySensors Arduino library handles the wireless radio link and protocol
@@ -28,17 +47,21 @@
 #include "MyTransport.h"
 #include <stdint.h>
 
-//#include "RHReliableDatagram.h"
-#include "RH_RF69.h"
-
 uint8_t _address = MY_NODE_ID;		// this is my node's address
 
 // This define's the network ID word for this network
 static const uint8_t _NID[] = {0x2d, (const uint8_t) MY_RFM69_NETWORKID};
 
 // This define's the radio class
+#ifdef MY_RADIO_RH_RF69
+#include "RH_RF69.h"
 RH_RF69					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
-		
+#elif  MY_RADIO_RH_RF95
+#include "RH_RF95.h"
+RH_RF95					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
+#else
+#error Radio is not defined in MyTransportRadioHead.cpp
+#endif		
 
 // This define's the class to manager message delivery and receipt, using the radio driver declared above
 //RHReliableDatagram 		manager(_radio, _address);
@@ -72,16 +95,11 @@ RH_RF69					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
     debug1(PSTR("\n"));                      //printf("\n");
  }
 
-
-
+// a note the RadioHead driver append a header to all message with a 4 byte header with to/from/id/flags
+// for now this has be commemt out in the driver for compatable with the LowPowerLab driver...
 /* ********************************************************** */
 bool transportInit() 
 {
-	//if (!driver.init())		debug(PSTR(" ** driver init failed **\n") );
-	
-	// Start up the radio library (_address will be set later by the MySensors library)
-//	if (_radio.initialize(MY_RFM69_FREQUENCY, _address, MY_RFM69_NETWORKID)) 
-	
 	if (_radio.init())
 	{
 		_radio.setEncryptionKey(NULL);		// no for now
@@ -93,7 +111,7 @@ bool transportInit()
 //		#endif
 
 		// a note the RadioHead driver append a header to all message with a 4 byte header with to/from/id/flags
-		
+#ifdef MY_RADIO_RH_RF69		
 		if (!_radio.setFrequency(915.0))							debug(PSTR(" ** setFrequency failed **\n") );
 		if (!_radio.setModemConfig( _radio.FSK_Rb55555Fd50 ))		debug(PSTR(" ** setModemConfig failed **\n") );
 	
@@ -102,10 +120,8 @@ bool transportInit()
 		_radio.setPreambleLength (3);		// for compatable with  LowPowerLab stack
 		_address = MY_NODE_ID;				// this is my node's address		
 		_radio.spiWrite(RH_RF69_REG_39_NODEADRS, MY_NODE_ID);
-		
-		//manager.setHeaderId(3);
-
-		//Serial.println( " transportInit complete -108" );
+#else
+#endif		
 
 		return true;
 	}
@@ -137,18 +153,13 @@ bool transportSend(uint8_t to, const void* data, uint8_t len)
 {
 	if (len > _radio.maxMessageLength() ) len = (uint8_t) _radio.maxMessageLength();
 		
-		
 		debug1(PSTR("\n *** Hex dump from transportSend \n"));
 		debug1(PSTR(" *** TO: %d Len: %d \n"), to, len);
 		hexdump ((uint8_t*) data, (unsigned long) len, 16);
 		debug1(PSTR("\n"));
 		
-			
-	//return manager.sendtoWait( buffer,  (uint8_t) len, (uint8_t) to);
-	//return manager.sendto( (uint8_t*)data,  (uint8_t) len, (uint8_t) to);
-	//return manager.sendtoWait( (uint8_t*)data,  (uint8_t) len, (uint8_t) to);
 	//driver.SetHeaderTo (to);
-	return _radio.send( (uint8_t*)data,  (uint8_t) len);		
+	return _radio.send( (uint8_t*)data, (uint8_t) len);		
 }
 
 
@@ -175,19 +186,16 @@ bool transportAvailable(uint8_t *to)
 /* ********************************************************** */
 uint8_t transportReceive(uint8_t* data) 
 {
-
-	uint8_t len = 64;
+	uint8_t len = _radio.maxMessageLength();	// need a place to hold the length of the data message
 	uint8_t from;
 	
-	//len[0]= 64;
-	_radio.recv(data, &len);
+	_radio.recv(data, &len);		// this return the correct length of the message from the radio
 
     debug1(PSTR("\n *** Hex dump from transportReceive \n"));
     debug1(PSTR(" *** From: %d Len: %d \n"), from, len);
 	hexdump ((unsigned char*) data , len, 16);
 	debug1(PSTR("\n"));
 	
-
 //    // Send ack back if this message wasn't a broadcast
 //	if (_radio.TARGETID != RF69_BROADCAST_ADDR)
 //		_radio.ACKRequested();

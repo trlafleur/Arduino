@@ -30,9 +30,17 @@
 // Maximum encryptable payload length the RF69 can support
 #define RH_RF69_MAX_ENCRYPTABLE_PAYLOAD_LEN 64
 
+// This is use for compatable with LowPowerLab and MySensor drivers
+// It removed the 4 byte header used in the RH drivers
+#define noHeader
+
+#ifdef noHeader
 // The length of the headers we add.
 // The headers are inside the RF69's payload and are therefore encrypted if encryption is enabled
+#define RH_RF69_HEADER_LEN 0
+#else
 #define RH_RF69_HEADER_LEN 4
+#endif
 
 // This is the maximum message length that can be supported by this driver. Limited by
 // the size of the FIFO, since we are unable to support on-the-fly filling and emptying 
