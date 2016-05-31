@@ -180,8 +180,6 @@ uint8_t hwCPUFrequency() {
 	return TCNT1 * 2048UL / 100000UL;
 }
 
-
-
 #ifdef MY_DEBUG
 void hwDebugPrint(const char *fmt, ... ) {
 	char fmtBuffer[300];
