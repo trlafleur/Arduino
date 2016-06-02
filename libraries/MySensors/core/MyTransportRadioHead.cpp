@@ -127,10 +127,9 @@ bool transportInit()
 		if (!_radio.setFrequency(915.0))							debug(PSTR(" ** setFrequency failed **\n") );
 		if (!_radio.setModemConfig( _radio.Bw125Cr45Sf128 ))		debug(PSTR(" ** setModemConfig failed **\n") );
 	
-		_radio.setTxPower(13);				// default
+		_radio.setTxPower(13);				// default, max = 
 		_radio.setPreambleLength (8);		// default
 		_address = MY_NODE_ID;				// this is my node's address		
-		//_radio.spiWrite(RH_RF69_REG_39_NODEADRS, MY_NODE_ID);
 
 #endif		
 
@@ -189,7 +188,7 @@ bool transportAvailable(uint8_t *to)
 //	else
 		*to = _address;
 		
-	return	_radio.available();	// return true if we have a message, there for transport is available
+	return	_radio.available();	// return true if we have a message, therefore transport is available for Tx
 }
 
 

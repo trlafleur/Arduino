@@ -62,9 +62,6 @@ uint8_t _address;
  }
 
 
-
-
-
 bool transportInit() 
 {
 	// Start up the radio library (_address will be set later by the MySensors library)
@@ -99,8 +96,6 @@ bool transportSend(uint8_t to, const void* data, uint8_t len)
 	debug1(PSTR(" *** TO: %d Len: %d \n"), to, len);
 	hexdump ((uint8_t*)data, (unsigned long) len, 16);
 	debug1(PSTR("\n"));
-	
-	
 	
 	return _radio.sendWithRetry(to,data,len,5);
 }
