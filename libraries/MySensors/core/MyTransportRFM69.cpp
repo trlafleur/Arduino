@@ -24,11 +24,11 @@
 #include "drivers/RFM69/RFM69_ATC.h"
 
 
-//#ifdef MY_RFM69_Enable_ATC
-//RFM69_ATC 	_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN, MY_RFM69HW, MY_RF69_IRQ_NUM);
-//#else
+#ifdef MY_RFM69_Enable_ATC
+RFM69_ATC 	_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN, MY_RFM69HW, MY_RF69_IRQ_NUM);
+#else
 RFM69 		_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN, MY_RFM69HW, MY_RF69_IRQ_NUM);
-//#endif
+#endif
 
 uint8_t _address;
 
