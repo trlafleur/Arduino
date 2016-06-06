@@ -1,23 +1,26 @@
 /**
  *
- *	The is the development version of a test transport for the RadioHead 
- *  series of radio drivers. Tested with RH_RF69, RH_RF95 radios
+ *	This is the development version of a test transport for the RadioHead 
+ *  series of radio drivers. Tested only with RH_RF69, RH_RF95 radios
  *	For use with MySensor 2.0
  *
- *	It requires some minor changes to the RadioHead drivers:
- *		To removed the 4 byte header sent and received by the RH drivers
+ *	It requires some minor changes to the RadioHead drivers To removed the 
+ *	4 byte header sent and received by the RH drivers. Other radios can be
+ *	added as needed by reviewing these minor changes in the drivers.
  *		
- *		An #define noHeader was added in the "driver".h file
+ *		A #define noHeader was added in the to this files
  *
  *		// This is use for compatable with LowPowerLab and MySensor drivers
  *		// It removed the 4 byte header used in the RH drivers
  *		#define noHeader
  *
+ *		Changes were made to the RH_RF69.cpp and RH_RF95.cpp to support this.
  *
- *		For 100% register compatable with the MySensor RFM_69 driver, we need to make a
- *		change in the RH_RF69.cpp MODEM_CONFIG_TABLE for the FSK_Rb55555Fd50 to set CONFIG_NOWHITE 
  *
- * //   { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x42, CONFIG_WHITE}, // FSK_Rb55555Fd50 
+ *	For 100% register compatable with the MySensor RFM_69 driver, we need to make a small
+ *	change in the RH_RF69.cpp MODEM_CONFIG_TABLE for the FSK_Rb55555Fd50 to set CONFIG_NOWHITE 
+ *
+ * //   { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x42, CONFIG_WHITE},   // FSK_Rb55555Fd50 
  *  	{ CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0xf4, CONFIG_NOWHITE}, // FSK_Rb55555Fd50
  *
  *		A note:
@@ -28,9 +31,11 @@
  *			sleep
  *			repeater function
  *			Tested ONLY with Moteino and MoteinoMega
+ *			Tested ONLY with RFM_69 and RFM_95
  *
- *  31 May 2016		TRL		First working version with RH_RF69
+ *  31 May 2016		TRL		First working version with RH_RF69 and RH_RF95
  *
+ * *****************************************************************************
  *
  * The MySensors Arduino library handles the wireless radio link and protocol
  * between your home built sensors/actuators and HA controller of choice.
@@ -55,6 +60,10 @@
 #include "MyTransport.h"
 #include <stdint.h>
 
+// This is use for compatable with LowPowerLab and MySensor drivers
+// It removed the 4 byte header used in the RH drivers
+#define noHeader
+
 uint8_t _address = MY_NODE_ID;		// this is my node's address
 
 // This define's the network ID word for this network
@@ -63,10 +72,10 @@ static const uint8_t _NID[] = {0x2d, (const uint8_t) MY_RFM69_NETWORKID};
 // This define's the radio class
 #if	defined MY_RADIO_RH_RF69
 #include "RH_RF69.h"
-RH_RF69					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
+RH_RF69			_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
 #elif  defined MY_RADIO_RH_RF95
 #include "RH_RF95.h"
-RH_RF95					_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
+RH_RF95			_radio(MY_RF69_SPI_CS, MY_RF69_IRQ_PIN);
 #else
 #error Radio is not defined in MyTransportRadioHead.cpp
 #endif		
@@ -105,21 +114,25 @@ bool transportInit()
 	if (_radio.init())
 	{
 
-//		#ifdef MY_RFM69_ENABLE_ENCRYPTION
-//			uint8_t _psk[16];
-//			hwReadConfigBlock((void*)_psk, (void*)EEPROM_RF_ENCRYPTION_AES_KEY_ADDRESS, 16);
-//			_radio.encrypt((const char*)_psk);
-//			memset(_psk, 0, 16); // Make sure it is purged from memory when set
-//		#endif
+#if 	defined MY_RADIO_RH_RF69
 
-#if 	defined MY_RADIO_RH_RF69		
+		#ifdef MY_RFM69_ENABLE_ENCRYPTION
+			uint8_t _psk[16];
+			hwReadConfigBlock((void*)_psk, (void*)EEPROM_RF_ENCRYPTION_AES_KEY_ADDRESS, 16);
+			_radio.setEncryptionKey(_psk);
+		//	_radio.encrypt((const char*)_psk);
+			memset(_psk, 0, 16); 				// Make sure it is purged from memory when set
+		#elif
+			_radio.setEncryptionKey(NULL);		// no Encryption Key
+		#endif
+	
 		if (!_radio.setFrequency(915.0))						debug(PSTR(" ** setFrequency failed **\n") );
 		if (!_radio.setModemConfig( _radio.FSK_Rb55555Fd50 ))	debug(PSTR(" ** setModemConfig failed **\n") );
 			
-		_radio.setEncryptionKey(NULL);		// no for now
 		_radio.setSyncWords(_NID,2);		// this sets the unique network ID
-		_radio.setTxPower(20);				// 14 to 20 is the range for the RFM69HW (HCW) 
-		_radio.setPreambleLength (3);		// for compatable with  LowPowerLab stack
+// If the setTPower is >= 14, the driver will set correct registers to use RFM_69HW (HWC) radios
+		_radio.setTxPower(14);				// 14 to 20 is the range for the RFM69HW (HCW)
+		_radio.setPreambleLength (3);		// for compatable with  LowPowerLab driver
 		_address = MY_NODE_ID;				// this is my node's address		
 		_radio.spiWrite(RH_RF69_REG_39_NODEADRS, MY_NODE_ID);
 		
@@ -127,10 +140,11 @@ bool transportInit()
 		if (!_radio.setFrequency(915.0))							debug(PSTR(" ** setFrequency failed **\n") );
 		if (!_radio.setModemConfig( _radio.Bw125Cr45Sf128 ))		debug(PSTR(" ** setModemConfig failed **\n") );
 	
-		_radio.setTxPower(13);				// default, max = 
+		_radio.setTxPower(13);				// default, max = 23
 		_radio.setPreambleLength (8);		// default
 		_address = MY_NODE_ID;				// this is my node's address		
-
+#else
+#error Radio is not defined in MyTransportRadioHead.cpp
 #endif		
 
 		return true;
@@ -149,7 +163,9 @@ void transportSetAddress(uint8_t address)
 
 #if defined MY_RADIO_RH_RF69
 	_radio.spiWrite(RH_RF69_REG_39_NODEADRS, address);
+	
 #elif defined MY_RADIO_RH_RF95
+
 #endif
 }
 

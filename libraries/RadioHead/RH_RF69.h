@@ -32,7 +32,7 @@
 
 // This is use for compatable with LowPowerLab and MySensor drivers
 // It removed the 4 byte header used in the RH drivers
-#define noHeader
+//#define noHeader
 
 #if defined noHeader
 // The length of the headers we add.

@@ -92,10 +92,6 @@ RH_RF69::RH_RF69(uint8_t slaveSelectPin, uint8_t interruptPin, RHGenericSPI& spi
     _interruptPin = interruptPin;
     _idleMode = RH_RF69_OPMODE_MODE_STDBY;
     _myInterruptIndex = 0xff; // Not allocated yet
-    
-    Serial.println( " in RH_RF69 -96 INT:  CSSS:" );
-  	Serial.println( (unsigned char) interruptPin, (unsigned char) slaveSelectPin  );
-  
 }
 
 void RH_RF69::setIdleMode(uint8_t idleMode)
@@ -192,8 +188,6 @@ bool RH_RF69::init()
     setEncryptionKey(NULL);
     // +13dBm, same as power-on default
     setTxPower(13); 
-
-	//Serial.println(" ** IN RH_RF69::init -196");
 
     return true;
 }

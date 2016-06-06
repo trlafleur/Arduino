@@ -27,7 +27,7 @@
 
 // This is use for compatable MySensor, it want's to control all data
 // It removed the 4 byte header used in the RH_RF95 drivers
-#define noHeader
+//#define noHeader
 
 #if defined noHeader
 // The length of the headers we add.
